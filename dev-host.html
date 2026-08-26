@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>pxt-teachable iframe test host</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #eceff4; color: #202124; }
+    header { padding: 12px 16px; background: white; border-bottom: 1px solid #d7dbe2; }
+    main { padding: 16px; }
+    iframe { width: 100%; min-height: 780px; border: 1px solid #c8ccd4; border-radius: 10px; background: white; }
+    #log { white-space: pre-wrap; font: 12px/1.5 ui-monospace, monospace; background: #111827; color: #e5e7eb; padding: 10px; border-radius: 8px; max-height: 180px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Local MakeCode iframe simulator</strong>
+    <span> — camera permission + pxtpkgext bridge smoke test</span>
+  </header>
+  <main>
+    <iframe id="extFrame" src="./index.html#local-pxt-teachable" allow="camera"></iframe>
+    <h2>Bridge log</h2>
+    <div id="log"></div>
+  </main>
+  <script>
+    const frame = document.getElementById('extFrame');
+    const log = document.getElementById('log');
+    let savedCode = '';
+    let savedJson = '';
+
+    function writeLog(value) {
+      log.textContent += `${new Date().toLocaleTimeString()} ${value}\n`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function reply(request, body) {
+      frame.contentWindow.postMessage({
+        id: request.id,
+        type: 'pxtpkgext',
+        action: request.action,
+        extId: request.extId,
+        body
+      }, '*');
+    }
+
+    window.addEventListener('message', event => {
+      const msg = event.data;
+      if (!msg) return;
+
+      if (msg.type === 'pxt-teachable-prediction') {
+        writeLog(`prediction ${msg.className},${msg.confidence}`);
+        return;
+      }
+
+      if (msg.type !== 'pxtpkgext') return;
+      writeLog(`${msg.action} extId=${msg.extId || '-'}`);
+
+      if (msg.action === 'extinit') {
+        if (msg.response) reply(msg);
+        setTimeout(() => {
+          frame.contentWindow.postMessage({
+            type: 'pxtpkgext',
+            action: 'extshown',
+            extId: msg.extId
+          }, '*');
+        }, 50);
+      } else if (msg.action === 'extreadcode') {
+        reply(msg, { code: savedCode, json: savedJson });
+      } else if (msg.action === 'extwritecode') {
+        savedCode = msg.body && msg.body.code || '';
+        savedJson = msg.body && msg.body.json || '';
+        writeLog(`saved config ${savedJson}`);
+      }
+    });
+  </script>
+</body>
+</html>
