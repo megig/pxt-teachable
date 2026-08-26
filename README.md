@@ -1,21 +1,20 @@
 # pxt-teachable
 
-MakeCode extension prototype for connecting Teachable Machine image classification to BBC micro:bit.
+MakeCode extension for connecting Teachable Machine image classification to BBC micro:bit.
 
-## Current scope
+for PXT/microbit
 
-- Receive predictions over USB serial in the PXT blocks API.
-- Parse `ClassName,confidence` messages.
-- Expose MakeCode blocks for class, confidence, and threshold matching.
-- Editor UI under `editor/` loads a Teachable Machine Image model.
-- Editor UI requests webcam permission and performs realtime classification.
-- Editor UI implements the MakeCode `pxtpkgext` iframe bridge (`extinit`, `extreadcode`, `extwritecode`, shown/hidden lifecycle handling).
-- Model URL, class labels, and threshold can be persisted through the extension JSON metadata file when hosted as an approved MakeCode Editor Extension.
-- `pxt.json` declares the hosted Editor Extension URL at `https://megig.github.io/pxt-teachable/` and keeps `http://localhost:8787/` for local development.
+## What it does
 
-## Prediction protocol for micro:bit serial
+`pxt-teachable` adds a **Teachable AI** block category to MakeCode and includes an optional Editor Extension UI for loading a Teachable Machine image model, opening the camera, and viewing realtime predictions inside MakeCode when the hosted editor URL is approved by the micro:bit target.
 
-Send one prediction per line:
+## Blocks API
+
+### `start Teachable AI serial`
+
+Starts listening for prediction lines over USB serial.
+
+Expected formats:
 
 ```text
 Person,0.94
@@ -23,11 +22,64 @@ Car,87
 Empty,0.99
 ```
 
-Confidence can be `0..1` or `0..100`.
+Confidence may be either `0..1` or `0..100`.
 
-## Local Editor Extension smoke test
+### `read AI prediction <line>`
 
-Start the static editor server from this repository:
+Parses one prediction string and updates the current class and confidence values.
+
+### `AI class`
+
+Returns the latest predicted class name as text.
+
+### `AI confidence (%)`
+
+Returns the latest prediction confidence from 0 to 100.
+
+### `AI class is <name> with confidence at least <value> %`
+
+Returns `true` when the latest class matches the selected name and its confidence is at least the requested threshold.
+
+### `last AI message`
+
+Returns the most recent raw prediction line received by the extension.
+
+## Example
+
+```typescript
+teachableAI.startSerial()
+basic.forever(function () {
+    if (teachableAI.isClass("Person", 80)) {
+        basic.showIcon(IconNames.Happy)
+    }
+})
+```
+
+## Editor Extension
+
+The Editor UI under `editor/`:
+
+- loads `<model URL>/model.json` and `<model URL>/metadata.json`
+- uses the Teachable Machine image library and `tmImage.Webcam`
+- performs realtime image classification
+- displays predicted classes and confidence
+- supports a configurable confidence threshold
+- implements MakeCode `pxtpkgext` messages including `extinit`, `extreadcode`, `extwritecode`, `extshown`, and `exthidden`
+- stores model URL, threshold, and class labels through the Editor Extension project metadata bridge
+
+Hosted Editor URL:
+
+```text
+https://megig.github.io/pxt-teachable/
+```
+
+Local development URL:
+
+```text
+http://localhost:8787/
+```
+
+Run the local Editor test server with:
 
 ```bash
 npm run serve:editor
@@ -39,27 +91,16 @@ Then open:
 http://localhost:8787/dev-host.html
 ```
 
-The local host embeds `editor/index.html` in an iframe with camera permission and simulates the minimum MakeCode `pxtpkgext` lifecycle (`extinit`, `extshown`, `extreadcode`, `extwritecode`). This verifies camera access and bridge behavior without modifying another project.
+## MakeCode approval requirements
 
-The development server is a dependency-free Node script (`dev-server.js`), so it does not require Python or npm packages.
+For the extension to appear in MakeCode's **Extensions** search, the repository must be added to `packages.approvedRepoLib` in `microsoft/pxt-microbit/targetconfig.json`.
 
-For a real local MakeCode target test, MakeCode documents using `localeditorextensions=1` and `extension.localUrl`. Production use requires replacing the development URL with a hosted HTTPS `extension.url` that is listed by the target under `packages.approvedEditorExtensionUrls`.
+For the hosted camera/editor iframe to open in production MakeCode, this URL must also be added to `packages.approvedEditorExtensionUrls`:
 
-## Editor extension
+```text
+https://megig.github.io/pxt-teachable/
+```
 
-The `editor/` directory is intentionally isolated from other projects. It uses the official Teachable Machine image library browser pattern:
+## License
 
-- `<model base URL>/model.json`
-- `<model base URL>/metadata.json`
-- `tmImage.Webcam`
-- realtime `model.predict(...)`
-
-MakeCode Editor Extensions are loaded in an iframe and communicate with the editor using `pxtpkgext` messages.
-
-## Next milestone
-
-1. Run the local iframe smoke test and confirm camera permission works.
-2. Add a final hosted HTTPS Editor Extension URL before production testing.
-3. Test the real MakeCode Editor button against a local MakeCode target.
-4. Decide the runtime transport from browser prediction to micro:bit: WebUSB serial, Bluetooth UART, or another supported bridge.
-5. Add dynamic class-selector UX after model metadata is saved.
+MIT
