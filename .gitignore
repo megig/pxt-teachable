@@ -2,4 +2,7 @@ node_modules/
 .DS_Store
 _site/
 *.log
+built/
+pxt_modules/
+tsconfig.json
 gen-icon.js

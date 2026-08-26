@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "serve:editor": "node dev-server.js"
+    "serve:editor": "node dev-server.js",
+    "pxt:setup": "pxt target microbit && pxt install",
+    "pxt:build": "pxt build",
+    "pxt:test": "pxt test"
+  },
+  "devDependencies": {
+    "pxt": "^0.5.1",
+    "pxt-microbit": "^9.1.1"
   }
 }
