@@ -37,8 +37,8 @@ Both approvals are required for the intended user experience: users can find the
 - `icon.png` at 300 x 200 px and under 100 KB
 - README includes `for PXT/microbit`
 - README includes block/API documentation
-- semantic version `0.1.0`
-- tag `v0.1.0`
+- semantic version `0.1.1`
+- tag `v0.1.1`
 - HTTPS GitHub Pages Editor Extension URL
 - `pxt build` passes against micro:bit target v9.1.1
 - `pxt test` passes against micro:bit target v9.1.1
