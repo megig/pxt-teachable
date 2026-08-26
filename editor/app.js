@@ -70,7 +70,6 @@ async function loadModel() {
   }
 
   try {
-    stopCamera();
     setMessage('Loading model...');
     els.loadModel.disabled = true;
     const model = await tmImage.load(`${baseUrl}model.json`, `${baseUrl}metadata.json`);
@@ -79,14 +78,14 @@ async function loadModel() {
     state.classes = typeof model.getClassLabels === 'function'
       ? model.getClassLabels()
       : Array.from({ length: model.getTotalClasses() }, (_, i) => `Class ${i + 1}`);
-    els.startCamera.disabled = false;
+    els.startCamera.disabled = state.running;
     els.saveConfig.disabled = false;
     renderClasses();
     setMessage(`Model loaded: ${state.classes.length} classes.`);
   } catch (error) {
     state.model = null;
     state.classes = [];
-    els.startCamera.disabled = true;
+    els.startCamera.disabled = state.running;
     els.saveConfig.disabled = true;
     renderClasses();
     setMessage(`Model load failed: ${error.message}`, true);
@@ -96,7 +95,7 @@ async function loadModel() {
 }
 
 async function startCamera() {
-  if (!state.model || state.running) return;
+  if (state.running) return;
   try {
     const size = 320;
     const flip = true;
@@ -112,7 +111,9 @@ async function startCamera() {
     els.cameraPlaceholder.style.display = 'none';
     els.startCamera.disabled = true;
     els.stopCamera.disabled = false;
-    setMessage('Camera running.');
+    setMessage(state.model
+      ? 'Camera running. Classification is active.'
+      : 'Camera running. Load a model to start classification.');
     state.rafId = requestAnimationFrame(loop);
   } catch (error) {
     setMessage(`Camera unavailable: ${error.message}`, true);
@@ -120,8 +121,12 @@ async function startCamera() {
 }
 
 async function loop() {
-  if (!state.running || !state.webcam || !state.model) return;
+  if (!state.running || !state.webcam) return;
   state.webcam.update();
+  if (!state.model) {
+    state.rafId = requestAnimationFrame(loop);
+    return;
+  }
   try {
     const source = state.webcam.canvas || state.webcam.webcam;
     const predictions = await state.model.predict(source);
@@ -158,7 +163,7 @@ function stopCamera() {
   state.webcam = null;
   els.webcamContainer.innerHTML = '';
   els.cameraPlaceholder.style.display = 'grid';
-  els.startCamera.disabled = !state.model;
+  els.startCamera.disabled = false;
   els.stopCamera.disabled = true;
 }
 
