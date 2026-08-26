@@ -67,6 +67,21 @@ The Editor UI under `editor/`:
 - implements MakeCode `pxtpkgext` messages including `extinit`, `extreadcode`, `extwritecode`, `extshown`, and `exthidden`
 - stores model URL, threshold, and class labels through the Editor Extension project metadata bridge
 
+### Current transport boundary
+
+The camera UI and the micro:bit serial blocks are currently two verified pieces
+with no production transport between them. The UI publishes qualifying
+predictions to its parent window as `pxt-teachable-prediction` messages, but the
+public MakeCode editor does not consume that custom message or write it to the
+physical micro:bit. The `start Teachable AI serial` block receives lines written
+to USB serial by a separate host bridge.
+
+Before calling the system end-to-end complete, choose and implement a supported
+runtime transport such as a standalone Chrome Web Serial bridge. The documented
+MakeCode Editor Extension protocol can request serial data from the device with
+`extdatastream`; it does not document an operation for writing prediction data
+from the iframe to the device.
+
 Hosted Editor URL:
 
 ```text
@@ -118,6 +133,10 @@ For the hosted camera/editor iframe to open in production MakeCode, this URL mus
 ```text
 https://megig.github.io/pxt-teachable/
 ```
+
+Until that external approval is granted, users can add the blocks by pasting
+the GitHub repository URL into the Extensions dialog, but MakeCode will not show
+the hosted camera/editor iframe.
 
 ## License
 
