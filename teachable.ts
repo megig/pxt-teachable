@@ -27,7 +27,7 @@ namespace teachableAI {
     export function handlePredictionLine(line: string): void {
         if (!line) return
         lastLine = line.trim()
-        const comma = lastLine.lastIndexOf(",")
+        const comma = lastLine.indexOf(",")
         if (comma < 1) {
             currentClass = lastLine
             currentConfidence = 100
