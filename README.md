@@ -91,6 +91,24 @@ Then open:
 http://localhost:8787/dev-host.html
 ```
 
+## Testing
+
+Install the pinned development toolchain and run the extension checks:
+
+```bash
+npm install
+npm run pxt:setup
+npm run pxt:build
+npm run pxt:test
+```
+
+`test.ts` exercises serial setup, decimal and percentage confidence parsing,
+class matching, whitespace handling, invalid numbers, clamping to `0..100`,
+messages without a comma, raw-message reporting, and empty-input behavior.
+Assertions use a distinct message for every case; a passing test compiles and
+runs without an assertion failure, while a failing case identifies itself by
+its message.
+
 ## MakeCode approval requirements
 
 For the extension to appear in MakeCode's **Extensions** search, the repository must be added to `packages.approvedRepoLib` in `microsoft/pxt-microbit/targetconfig.json`.

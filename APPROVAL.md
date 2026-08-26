@@ -7,7 +7,7 @@ This repository is prepared for submission to the Microsoft MakeCode micro:bit t
 - GitHub: `megig/pxt-teachable`
 - Editor Extension: `https://megig.github.io/pxt-teachable/`
 - Target: `microbit`
-- Current extension version: `0.1.0`
+- Current extension version: `0.1.1`
 
 ## Requested targetconfig.json changes
 
