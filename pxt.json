@@ -1,0 +1,23 @@
+{
+  "name": "pxt-teachable",
+  "version": "0.0.1",
+  "description": "Teachable Machine integration blocks for BBC micro:bit MakeCode",
+  "dependencies": {
+    "core": "*"
+  },
+  "files": [
+    "teachable.ts",
+    "README.md"
+  ],
+  "testFiles": [
+    "test.ts"
+  ],
+  "supportedTargets": [
+    "microbit"
+  ],
+  "preferredEditor": "tsprj",
+  "extension": {
+    "url": "https://megig.github.io/pxt-teachable/",
+    "localUrl": "http://localhost:8787/"
+  }
+}

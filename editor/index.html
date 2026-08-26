@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teachable AI Camera</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>Teachable AI</h1>
+        <p class="subtitle">Camera + Teachable Machine for MakeCode</p>
+      </div>
+      <span id="bridgeStatus" class="badge">Standalone</span>
+    </header>
+
+    <label>Teachable Machine Model URL
+      <input id="modelUrl" type="url" placeholder="https://teachablemachine.withgoogle.com/models/.../" />
+    </label>
+
+    <div class="actions">
+      <button id="loadModel">Load Model</button>
+      <button id="startCamera" disabled>Start Camera</button>
+      <button id="stopCamera" disabled>Stop</button>
+      <button id="saveConfig" disabled>Save to MakeCode</button>
+    </div>
+
+    <p id="modelStatus" class="message">Enter a Teachable Machine Image model URL.</p>
+
+    <section class="camera-wrap">
+      <div id="webcamContainer"></div>
+      <div id="cameraPlaceholder">Camera preview</div>
+    </section>
+
+    <section class="result-card">
+      <div class="primary-result">
+        <span>Detected class</span>
+        <strong id="className">-</strong>
+      </div>
+      <div class="primary-result">
+        <span>Confidence</span>
+        <strong id="confidence">0%</strong>
+      </div>
+    </section>
+
+    <label>Threshold
+      <input id="threshold" type="range" min="0" max="100" value="80" />
+      <span id="thresholdValue">80%</span>
+    </label>
+
+    <section>
+      <h2>Classes</h2>
+      <div id="classList" class="class-list">No model loaded.</div>
+    </section>
+
+    <p class="note">When opened as a MakeCode Editor Extension, configuration is stored in the extension's dedicated JSON/TypeScript files through the MakeCode iframe protocol.</p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

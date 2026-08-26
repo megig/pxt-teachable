@@ -1,0 +1,8 @@
+{
+  "name": "pxt-teachable-dev",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "serve:editor": "node dev-server.js"
+  }
+}
