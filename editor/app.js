@@ -12,7 +12,11 @@ const els = {
   thresholdValue: document.getElementById('thresholdValue'),
   classList: document.getElementById('classList'),
   modelStatus: document.getElementById('modelStatus'),
-  bridgeStatus: document.getElementById('bridgeStatus')
+  bridgeStatus: document.getElementById('bridgeStatus'),
+  connectSerial: document.getElementById('connectSerial'),
+  disconnectSerial: document.getElementById('disconnectSerial'),
+  serialStatus: document.getElementById('serialStatus'),
+  serialOutput: document.getElementById('serialOutput')
 };
 
 const state = {
@@ -23,12 +27,108 @@ const state = {
   classes: [],
   running: false,
   rafId: 0,
-  pending: new Map()
+  pending: new Map(),
+  serialPort: null,
+  serialWriteChain: Promise.resolve(),
+  lastSerialClass: '',
+  lastSerialConfidence: -1,
+  lastSerialSentAt: 0
 };
 
 function setMessage(text, isError = false) {
   els.modelStatus.textContent = text;
   els.modelStatus.classList.toggle('error', isError);
+}
+
+function setSerialStatus(text, isError = false) {
+  els.serialStatus.textContent = text;
+  els.serialStatus.classList.toggle('error', isError);
+}
+
+function setSerialConnected(connected) {
+  els.connectSerial.disabled = connected || !('serial' in navigator);
+  els.disconnectSerial.disabled = !connected;
+}
+
+function resetSerialState(message = 'micro:bit disconnected.', isError = false) {
+  state.serialPort = null;
+  state.lastSerialClass = '';
+  state.lastSerialConfidence = -1;
+  state.lastSerialSentAt = 0;
+  setSerialConnected(false);
+  setSerialStatus(message, isError);
+}
+
+async function connectSerial() {
+  if (!('serial' in navigator)) {
+    setSerialStatus('Web Serial is not available. Open this page in desktop Chrome or Edge.', true);
+    return;
+  }
+  if (state.serialPort) return;
+
+  try {
+    setSerialStatus('Choose the micro:bit USB serial port...');
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    state.serialPort = port;
+    setSerialConnected(true);
+    setSerialStatus('micro:bit connected at 115200 baud. Predictions above the threshold will be sent.');
+  } catch (error) {
+    const cancelled = error && error.name === 'NotFoundError';
+    resetSerialState(
+      cancelled ? 'Connection cancelled.' : `Serial connection failed: ${error.message}`,
+      !cancelled
+    );
+  }
+}
+
+async function disconnectSerial() {
+  const port = state.serialPort;
+  state.serialPort = null;
+  setSerialConnected(false);
+
+  try {
+    await state.serialWriteChain.catch(() => {});
+    if (port) await port.close();
+    resetSerialState();
+  } catch (error) {
+    resetSerialState(`Serial disconnect failed: ${error.message}`, true);
+  }
+}
+
+function queuePredictionForSerial(className, confidence) {
+  const port = state.serialPort;
+  if (!port || !port.writable) return;
+
+  const now = Date.now();
+  const sameReading = state.lastSerialClass === className
+    && Math.abs(state.lastSerialConfidence - confidence) < 2;
+  if (now - state.lastSerialSentAt < 250) return;
+  if (sameReading && now - state.lastSerialSentAt < 1000) return;
+
+  const safeClassName = String(className).replace(/[\r\n,]/g, ' ').trim() || 'Unknown';
+  const line = `${safeClassName},${confidence}\n`;
+  state.lastSerialClass = className;
+  state.lastSerialConfidence = confidence;
+  state.lastSerialSentAt = now;
+  els.serialOutput.textContent = `Last sent: ${line.trim()}`;
+
+  state.serialWriteChain = state.serialWriteChain
+    .then(async () => {
+      if (state.serialPort !== port || !port.writable) return;
+      const writer = port.writable.getWriter();
+      try {
+        await writer.write(new TextEncoder().encode(line));
+      } finally {
+        writer.releaseLock();
+      }
+    })
+    .catch(async error => {
+      if (state.serialPort === port) {
+        resetSerialState(`Serial write failed: ${error.message}`, true);
+      }
+      try { await port.close(); } catch (_) {}
+    });
 }
 
 function normalizeModelUrl(value) {
@@ -229,6 +329,7 @@ function sendPredictionToParent(className, confidence) {
     className,
     confidence
   }, '*');
+  queuePredictionForSerial(className, confidence);
 }
 
 window.addEventListener('message', event => {
@@ -260,6 +361,19 @@ els.loadModel.addEventListener('click', loadModel);
 els.startCamera.addEventListener('click', startCamera);
 els.stopCamera.addEventListener('click', stopCamera);
 els.saveConfig.addEventListener('click', saveConfig);
+els.connectSerial.addEventListener('click', connectSerial);
+els.disconnectSerial.addEventListener('click', disconnectSerial);
 window.addEventListener('beforeunload', stopCamera);
+
+if ('serial' in navigator) {
+  setSerialConnected(false);
+  setSerialStatus('Ready. Connect a flashed micro:bit over USB.');
+  navigator.serial.addEventListener('disconnect', event => {
+    if (event.port === state.serialPort) resetSerialState('micro:bit was disconnected.');
+  });
+} else {
+  setSerialConnected(false);
+  setSerialStatus('Web Serial is not available. Open this page in desktop Chrome or Edge.', true);
+}
 
 initMakeCodeBridge();

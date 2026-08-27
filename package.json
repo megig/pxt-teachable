@@ -1,14 +1,16 @@
 {
   "name": "pxt-teachable-dev",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "scripts": {
     "serve:editor": "node dev-server.js",
+    "test:editor": "node editor/serial-smoke.test.js",
     "pxt:setup": "pxt target microbit && pxt install",
     "pxt:build": "pxt build",
     "pxt:test": "pxt test"
   },
   "devDependencies": {
+    "jsdom": "^26.1.0",
     "pxt": "^0.5.1",
     "pxt-microbit": "^9.1.1"
   }

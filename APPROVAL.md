@@ -9,7 +9,7 @@ external and product-readiness items below are resolved.
 - GitHub: `megig/pxt-teachable`
 - Editor Extension: `https://megig.github.io/pxt-teachable/`
 - Target: `microbit`
-- Current extension version: `0.1.1`
+- Current extension version: `0.2.0`
 
 ## Requested targetconfig.json changes
 
@@ -39,8 +39,8 @@ Both approvals are required for the intended user experience: users can find the
 - `icon.png` at 300 x 200 px and under 100 KB
 - README includes `for PXT/microbit`
 - README includes block/API documentation
-- semantic version `0.1.1`
-- tag `v0.1.1`
+- semantic version `0.2.0`
+- standalone Web Serial transport from camera predictions to micro:bit
 - HTTPS GitHub Pages Editor Extension URL
 - `pxt build` passes against micro:bit target v9.1.1
 - `pxt test` passes against micro:bit target v9.1.1
@@ -58,16 +58,14 @@ Both approvals are required for the intended user experience: users can find the
 - The Editor Extension URL is not currently in the production micro:bit
   `approvedEditorExtensionUrls` list. This is the reason the camera iframe is
   absent after adding the extension by URL.
-- The camera classifier does not yet send predictions to a physical micro:bit.
-  The blocks receive USB serial lines from a separate host bridge, while the UI
-  currently emits a parent-window message only. Select and implement the final
-  runtime transport before declaring the extension finished.
+- Create and push the `v0.2.0` release tag after final hardware verification.
 
 ## Local verification
 
 ```bash
 npm install
 npm run pxt:setup
+npm run test:editor
 npm run pxt:build
 npm run pxt:test
 ```

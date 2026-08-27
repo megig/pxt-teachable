@@ -66,21 +66,25 @@ The Editor UI under `editor/`:
 - supports a configurable confidence threshold
 - implements MakeCode `pxtpkgext` messages including `extinit`, `extreadcode`, `extwritecode`, `extshown`, and `exthidden`
 - stores model URL, threshold, and class labels through the Editor Extension project metadata bridge
+- connects to a physical micro:bit from the standalone page using Web Serial
+- writes qualifying predictions as `ClassName,confidence` lines at 115200 baud
 
-### Current transport boundary
+### Run camera predictions on a physical micro:bit
 
-The camera UI and the micro:bit serial blocks are currently two verified pieces
-with no production transport between them. The UI publishes qualifying
-predictions to its parent window as `pxt-teachable-prediction` messages, but the
-public MakeCode editor does not consume that custom message or write it to the
-physical micro:bit. The `start Teachable AI serial` block receives lines written
-to USB serial by a separate host bridge.
+1. Add this extension to MakeCode and flash a program that calls
+   `teachableAI.startSerial()` to the micro:bit.
+2. Open `https://megig.github.io/pxt-teachable/` directly in desktop Chrome or
+   Edge. Web Serial requires a secure context and is not supported by every
+   browser.
+3. Select **Connect micro:bit** and choose the micro:bit USB serial port.
+4. Start the camera, load a Teachable Machine Image model, and set the threshold.
+5. Predictions meeting the threshold are sent to the micro:bit at 115200 baud.
 
-Before calling the system end-to-end complete, choose and implement a supported
-runtime transport such as a standalone Chrome Web Serial bridge. The documented
-MakeCode Editor Extension protocol can request serial data from the device with
-`extdatastream`; it does not document an operation for writing prediction data
-from the iframe to the device.
+The camera UI still publishes qualifying predictions to its parent window as
+`pxt-teachable-prediction` messages for the local iframe harness. The supported
+physical-device transport is the standalone Web Serial page. An embedded
+MakeCode Editor Extension iframe may not receive permission to request a USB
+serial port, so open the hosted page directly when using hardware.
 
 Hosted Editor URL:
 
@@ -113,6 +117,7 @@ Install the pinned development toolchain and run the extension checks:
 ```bash
 npm install
 npm run pxt:setup
+npm run test:editor
 npm run pxt:build
 npm run pxt:test
 ```
@@ -123,6 +128,10 @@ messages without a comma, raw-message reporting, and empty-input behavior.
 Assertions use a distinct message for every case; a passing test compiles and
 runs without an assertion failure, while a failing case identifies itself by
 its message.
+
+`npm run test:editor` uses a mock Web Serial port to verify 115200-baud
+connection, line output, duplicate throttling, class-name sanitizing, and clean
+disconnect behavior without requiring hardware.
 
 ## MakeCode approval requirements
 
