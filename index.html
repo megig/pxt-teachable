@@ -31,6 +31,19 @@
 
     <p id="modelStatus" class="message">Start the camera now, then load a Teachable Machine Image model when ready.</p>
 
+    <section class="serial-card" aria-labelledby="serialHeading">
+      <div>
+        <h2 id="serialHeading">Send predictions to micro:bit</h2>
+        <p>Open this page directly in Chrome or Edge, connect the micro:bit over USB, then choose its serial port.</p>
+      </div>
+      <div class="actions serial-actions">
+        <button id="connectSerial">Connect micro:bit</button>
+        <button id="disconnectSerial" disabled>Disconnect</button>
+      </div>
+      <p id="serialStatus" class="message" role="status">Checking Web Serial support...</p>
+      <p id="serialOutput" class="serial-output">Last sent: -</p>
+    </section>
+
     <section class="camera-wrap">
       <div id="webcamContainer"></div>
       <div id="cameraPlaceholder">Camera preview</div>
@@ -57,6 +70,7 @@
       <div id="classList" class="class-list">No model loaded.</div>
     </section>
 
+    <p class="note">Flash a MakeCode program containing <code>start Teachable AI serial</code> before connecting. Web Serial works from the standalone HTTPS page in Chrome or Edge; the embedded MakeCode iframe may not be granted USB serial access.</p>
     <p class="note">When opened as a MakeCode Editor Extension, configuration is stored in the extension's dedicated JSON/TypeScript files through the MakeCode iframe protocol.</p>
   </main>
   <script src="app.js"></script>
